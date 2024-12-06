@@ -87,4 +87,25 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse
             return null;
         }
     }
+
+    /**
+     * Retrieve a boolean flag if this domain name is awaiting verification or not.
+     *
+     * @return bool|null
+     */
+    public function getAwaitingVerification()
+    {
+        $xpath = $this->xPath();
+        $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:nameserversOverridden');
+
+        $nameserversOveridden = $result->item(0)?->nodeValue;
+        $reason = $result->item(0)?->attributes?->item(0)?->value;
+
+        if (!$nameserversOveridden || !$reason) {
+            return null;
+        }
+
+        return $nameserversOveridden === 'true' && $reason === 'Pending registrant verification';
+    }
+
 }
