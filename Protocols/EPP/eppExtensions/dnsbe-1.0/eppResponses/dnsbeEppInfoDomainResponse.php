@@ -1,4 +1,5 @@
 <?php
+
 namespace Metaregistrar\EPP;
 
 use phpseclib3\Math\BigInteger\Engines\PHP;
@@ -7,8 +8,10 @@ use phpseclib3\Math\BigInteger\Engines\PHP;
  * Class dnsbeEppInfoDomainResponse
  * @package Metaregistrar\EPP
  */
-class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse {
-    function __construct() {
+class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse
+{
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -17,7 +20,8 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse {
      * Retrieve a boolean flag if this domain name is in quarantine or not
      * @return bool|null
      */
-    public function getQuarantined() {
+    public function getQuarantined()
+    {
         $xpath = $this->xPath();
         $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:quarantined');
         if ($result->length > 0) {
@@ -36,7 +40,8 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse {
      * Retrieve a boolean flag if this domain name is on hold or not
      * @return bool|null
      */
-    public function getOnHold() {
+    public function getOnHold()
+    {
         $xpath = $this->xPath();
         $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:onhold');
         if ($result->length > 0) {
@@ -53,7 +58,8 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse {
     /**
      * @return null|string
      */
-    public function getDomainDeletionDate() {
+    public function getDomainDeletionDate()
+    {
         $xpath = $this->xPath();
         $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:deletionDate');
         if ($result->length > 0) {
@@ -67,18 +73,38 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse {
      * Retrieve a string with the nameserver group
      * @return null|array
      */
-    public function getNameserverGroup() {
+    public function getNameserverGroup()
+    {
         $xpath = $this->xPath();
         $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:nsgroup');
         if ($result->length > 0) {
-           $arr = [];
-           foreach ($result as $item){
-              $arr[]=$item->nodeValue;
-           }
-           return $arr;
+            $arr = [];
+            foreach ($result as $item) {
+                $arr[] = $item->nodeValue;
+            }
+            return $arr;
         } else {
             return null;
         }
     }
-}
 
+    /**
+     * Retrieve a boolean flag if this domain name is awaiting verification or not.
+     *
+     * @return bool|null
+     */
+    public function getAwaitingVerification()
+    {
+        $xpath = $this->xPath();
+        $result = $xpath->query('/epp:epp/epp:response/epp:extension/dnsbe:ext/dnsbe:infData/dnsbe:domain/dnsbe:nameserversOverridden');
+
+        $nameserversOveridden = $result->item(0)?->nodeValue;
+        $reason = $result->item(0)?->attributes?->item(0)?->value;
+
+        if (!$nameserversOveridden || !$reason) {
+            return null;
+        }
+
+        return $nameserversOveridden === 'true' && $reason === 'Pending registrant verification';
+    }
+}

@@ -1,4 +1,5 @@
 <?php
+
 $this->addExtension('dnsbe', 'http://www.dns.be/xml/epp/dnsbe-1.0');
 #
 # Load the DNSBE specific additions
@@ -52,3 +53,6 @@ $this->addCommandResponse('Metaregistrar\EPP\dnsbeEppCheckDomainRequest', 'Metar
 include_once(dirname(__FILE__) . '/eppRequests/dnsbeEppUpdateDomainRequest.php');
 include_once(dirname(__FILE__) . '/eppResponses/dnsbeEppUpdateDomainResponse.php');
 $this->addCommandResponse('Metaregistrar\EPP\dnsbeEppUpdateDomainRequest', 'Metaregistrar\EPP\dnsbeEppUpdateDomainResponse');
+
+include_once(dirname(__FILE__) . '/eppExceptions/dnsbeEppException.php');
+$this->addException('Metaregistrar\EPP\sidnEppException');
