@@ -91,7 +91,7 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse
     /**
      * Retrieve a boolean flag if this domain name is awaiting verification or not.
      *
-     * @return bool|null
+     * @return bool
      */
     public function getAwaitingVerification()
     {
@@ -101,8 +101,9 @@ class dnsbeEppInfoDomainResponse extends eppInfoDomainResponse
         $nameserversOveridden = $result->item(0)?->nodeValue;
         $reason = $result->item(0)?->attributes?->item(0)?->value;
 
-        if (!$nameserversOveridden || !$reason) {
-            return null;
+        // If the nameservers are not overridden, the domain is not awaiting verification
+        if (!$nameserversOveridden) {
+            return false;
         }
 
         return $nameserversOveridden === 'true' && $reason === 'Pending registrant verification';
