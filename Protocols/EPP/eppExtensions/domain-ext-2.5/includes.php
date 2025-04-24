@@ -1,4 +1,5 @@
 <?php
+
 $this->addExtension('domain-ext', 'http://www.eurid.eu/xml/epp/domain-ext-2.5');
 
 include_once(dirname(__FILE__) . '/eppRequests/euridEppTransferDomainRequest.php');
@@ -15,3 +16,6 @@ $this->addCommandResponse('Metaregistrar\EPP\euridEppUndeleteDomainRequest', 'Me
 
 include_once(dirname(__FILE__) . '/eppResponses/euridEppInfoDomainResponse.php');
 $this->addCommandResponse('Metaregistrar\EPP\eppInfoDomainRequest', 'Metaregistrar\EPP\euridEppInfoDomainResponse');
+
+include_once(dirname(__FILE__) . '/eppRequests/euridEppUpdateDomainRequest.php');
+$this->addCommandResponse('Metaregistrar\EPP\euridEppUpdateDomainRequest', 'Metaregistrar\EPP\eppUpdateDomainResponse');
