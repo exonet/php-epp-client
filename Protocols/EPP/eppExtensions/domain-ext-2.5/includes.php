@@ -1,5 +1,4 @@
 <?php
-
 $this->addExtension('domain-ext', 'http://www.eurid.eu/xml/epp/domain-ext-2.5');
 
 include_once(dirname(__FILE__) . '/eppRequests/euridEppTransferDomainRequest.php');
