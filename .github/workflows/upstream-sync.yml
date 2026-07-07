@@ -1,0 +1,80 @@
+---
+# Opens a PR that brings changes from the upstream metaregistrar/php-epp-client
+# into this fork, keeping the local Exonet patches. Merge the PR manually with
+# "Squash and merge" to land the upstream changes as a single *Verified* commit
+# (GitHub web-flow signature) on master.
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  UPSTREAM: metaregistrar/php-epp-client
+  UPSTREAM_BRANCH: master
+
+jobs:
+  upstream-sync:
+    name: Open upstream sync PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # App token so the branch/PR are created as the app (and the PR triggers
+      # CI). Needs the app installed on this repo with contents: write +
+      # pull-requests: write.
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout fork
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Open an upstream sync PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git fetch --no-tags --quiet upstream "${UPSTREAM_BRANCH}"
+
+          upstream_sha="$(git rev-parse --short "upstream/${UPSTREAM_BRANCH}")"
+          branch="upstream-sync/${upstream_sha}"
+
+          # Dedupe on the upstream SHA: a squash-merge doesn't make upstream an
+          # ancestor of master, so we can't detect "already synced" via ancestry.
+          # Instead, skip if a PR for this exact upstream commit already exists
+          # (open or already merged/closed).
+          if [ -n "$(gh pr list --head "${branch}" --state all --json number --jq '.[].number' | head -n1)" ]; then
+            echo "Already synced/attempted ${UPSTREAM}@${upstream_sha}; nothing to do."
+            exit 0
+          fi
+
+          # Mirror upstream onto a feature branch. Its commits stay unsigned there
+          # (feature branches have no signing requirement); a "Squash and merge"
+          # produces the single signed commit that lands on master.
+          git push --force origin "upstream/${UPSTREAM_BRANCH}:refs/heads/${branch}"
+
+          body="Automated sync of upstream [\`${UPSTREAM}\`](https://github.com/${UPSTREAM}) into this fork. Merge with **Squash and merge** to land the upstream changes as a single Verified commit on \`master\`; the local Exonet patches are preserved. Resolve any conflicts with the patches first. Upstream: ${UPSTREAM}@${upstream_sha}."
+
+          if ! url="$(gh pr create --base master --head "${branch}" \
+              --title "Sync with upstream ${UPSTREAM}@${upstream_sha}" \
+              --body "${body}")"; then
+            echo "No PR created (fork already contains these changes); cleaning up branch."
+            git push origin --delete "${branch}" || true
+            exit 0
+          fi
+          echo "Opened ${url} — review and merge it manually with \"Squash and merge\"."
