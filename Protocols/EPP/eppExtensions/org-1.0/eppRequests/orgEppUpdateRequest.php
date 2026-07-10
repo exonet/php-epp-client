@@ -5,16 +5,30 @@ namespace Metaregistrar\EPP;
  *
  */
 
+
+
 class orgEppUpdateRequest extends eppRequest {
 	private \DOMElement|false $updateobject;
 
+	/**
+	 * @param string $handle
+	 * @param $addinfo
+	 * @param $removeinfo
+	 * @param $updateinfo
+	 * @param $namespacesinroot
+	 * @param $usecdata
+	 * @throws \DOMException
+	 *
+	 * Update reseller information
+	 * $updateinfo allows updating of company and address data
+	 * $addinfo and $removeinfo allows adding and removing contact statuses and linked contact objects
+	 */
 	function __construct(string $handle, $addinfo = null, $removeinfo = null, $updateinfo = null, $namespacesinroot = true, $usecdata = true) {
 		$this->setNamespacesinroot($namespacesinroot);
 		parent::__construct();
 		$this->setUseCdata($usecdata);
 		$update = $this->createElement('update');
 		$this->updateobject = $this->createElement('org:update');
-		//$this->setContact($updateinfo, $type);
 		$update->appendChild($this->updateobject);
 		$this->getCommand()->appendChild($update);
 		$this->updateContact($handle, $addinfo, $removeinfo, $updateinfo);
@@ -23,25 +37,27 @@ class orgEppUpdateRequest extends eppRequest {
 
 	public function updateContact($handle, $addInfo, $removeInfo, $updateInfo) {
 		$this->updateobject->appendChild($this->createElement('org:id', $handle));
-		if ($updateInfo instanceof eppContact) {
-			$chgcmd = $this->createElement('org:chg');
-			$this->addContactChanges($chgcmd, $updateInfo);
-			if ($chgcmd->hasChildNodes()) {
-				$this->updateobject->appendChild($chgcmd);
+		if ($addInfo instanceof eppContact) {
+			$addcmd = $this->createElement('org:add');
+			$this->addContactStatus($addcmd, $addInfo);
+			$this->addContactHandles($addcmd, $addInfo);
+			if ($addcmd->hasChildNodes()) {
+				$this->updateobject->appendChild($addcmd);
 			}
 		}
 		if ($removeInfo instanceof eppContact) {
 			$remcmd = $this->createElement('org:rem');
 			$this->addContactStatus($remcmd, $removeInfo);
+			$this->addContactHandles($remcmd, $removeInfo);
 			if ($remcmd->hasChildNodes()) {
 				$this->updateobject->appendChild($remcmd);
 			}
 		}
-		if ($addInfo instanceof eppContact) {
-			$addcmd = $this->createElement('org:add');
-			$this->addContactStatus($addcmd, $addInfo);
-			if ($addcmd->hasChildNodes()) {
-				$this->updateobject->appendChild($addcmd);
+		if ($updateInfo instanceof eppContact) {
+			$chgcmd = $this->createElement('org:chg');
+			$this->addContactChanges($chgcmd, $updateInfo);
+			if ($chgcmd->hasChildNodes()) {
+				$this->updateobject->appendChild($chgcmd);
 			}
 		}
 	}
@@ -54,6 +70,16 @@ class orgEppUpdateRequest extends eppRequest {
 					$element->appendChild($this->createElement('org:status',$status));
 				}
 			}
+		}
+	}
+
+	private function addContactHandles(\DOMElement $element, eppContact $contact) {
+		if (is_string($contact->getId())) {
+			$contactadd = $this->createElement('org:contact',$contact->getId());
+			if (is_string($contact->getType())) {
+				$contactadd->setAttribute('type',$contact->getType());
+			}
+			$element->appendChild($contactadd);
 		}
 	}
 
@@ -70,13 +96,11 @@ class orgEppUpdateRequest extends eppRequest {
 				}
 			}
 			$postalinfo->setAttribute('type', $postal->getType());
-			// Mandatory field
-			if (is_string($postal->getName()) && strlen($postal->getName()) > 0) {
-				$postalinfo->appendChild($this->createElement('org:name', $postal->getName()));
-			}
 			// Optional field
 			if (!is_null($postal->getOrganisationName())) {
-				$postalinfo->appendChild($this->createElement('org:org', $postal->getOrganisationName()));
+				$postalinfo->appendChild($this->createElement('org:name', $postal->getOrganisationName()));
+			} else {
+				$postalinfo->appendChild($this->createElement('org:name', $postal->getName()));
 			}
 			if ((($postal->getStreetCount()) > 0) || strlen($postal->getCity()) || strlen($postal->getProvince()) || strlen($postal->getZipcode()) || strlen($postal->getCountrycode())) {
 				$postaladdr = $this->createElement('org:addr');

@@ -79,7 +79,7 @@ class orgEppInfoResponse extends eppResponse {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:postalInfo/org:addr/org:pc');
 	}
 
-	function getOrgState(): string {
+	function getOrgState(): ?string {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:postalInfo/org:addr/org:sp');
 	}
 
@@ -91,7 +91,7 @@ class orgEppInfoResponse extends eppResponse {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:voice');
 	}
 
-	function getOrgFax(): string {
+	function getOrgFax(): ?string {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:fax');
 	}
 
@@ -99,7 +99,7 @@ class orgEppInfoResponse extends eppResponse {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:email');
 	}
 
-	function getOrgUrl(): string {
+	function getOrgUrl(): ?string {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:url');
 	}
 
@@ -108,6 +108,21 @@ class orgEppInfoResponse extends eppResponse {
 	}
 	function getOrgUpdateDate(): string {
 		return $this->queryPath('/epp:epp/epp:response/epp:resData/org:infData/org:upDate');
+	}
+
+	function getOrgContacts(): array {
+		$result = [];
+		$xpath = $this->xPath();
+		$data = $xpath->query('/epp:epp/epp:response/epp:resData/org:infData/org:contact');
+		if ($data->length >0) {
+			if ($data->length >0) {
+				foreach ($data as $contact) {
+					/* @var $contact \DOMElement */
+					$result[$contact->getAttribute('type')][] = $contact->nodeValue;
+				}
+			}
+		}
+		return $result;
 	}
 
 	public function getOrgPostalInfo() {
