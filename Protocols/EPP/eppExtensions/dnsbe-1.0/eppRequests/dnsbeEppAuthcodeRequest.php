@@ -42,7 +42,7 @@ class dnsbeEppAuthcodeRequest extends eppRequest {
         $authcode = $this->createElement('dnsbe:requestAuthCode');
         $authcode->appendChild($this->createElement('dnsbe:domainName', $domainname));
         if($url!==null && preg_match("/^https?:\/\//",$url)) {
-           $authcode->appendChild($this->createElement('dnsbe:url', $url));
+           $authcode->appendChild($this->createElement('dnsbe:url', htmlspecialchars($url)));
         }
         $command->appendChild($authcode);
         $dnsext->appendChild($command);
