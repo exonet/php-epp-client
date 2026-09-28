@@ -19,7 +19,7 @@ class plEppDnssecInfoDomainResponse extends plEppInfoDomainResponse
   public function getKeydata()
   {
     // Check if dnssec is enabled on this interface
-    if ($this->findNamespace('secDNS')) {
+    if ($this->findNamespace('secDNS-2.1')) {
       $xpath = $this->xPath();
       $result = $xpath->query('/epp:epp/epp:response/epp:extension/secDNS:infData/*');
       $keys = array();
@@ -75,7 +75,7 @@ class plEppDnssecInfoDomainResponse extends plEppInfoDomainResponse
   public function getKeys()
   {
     // Check if dnssec is enabled on this interface
-    if ($this->findNamespace('secDNS')) {
+    if ($this->findNamespace('secDNS-2.1')) {
       $xpath = $this->xPath();
       $result = $xpath->query('/epp:epp/epp:response/epp:extension/secDNS:infData/*');
       $keys = array();

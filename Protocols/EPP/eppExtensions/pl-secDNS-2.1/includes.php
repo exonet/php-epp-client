@@ -7,4 +7,4 @@ include_once(dirname(__FILE__) . '/eppRequests/plEppDnssecUpdateDomainRequest.ph
 $this->addCommandResponse('Metaregistrar\EPP\plEppDnssecUpdateDomainRequest', 'Metaregistrar\EPP\eppUpdateDomainResponse');
 
 include_once(dirname(__FILE__) . '/eppResponses/plEppDnssecInfoDomainResponse.php');
-$this->addCommandResponse('Metaregistrar\EPP\plEppInfoDomainRequest', 'Metaregistrar\EPP\plEppDnssecInfoDomainResponse');
+$this->addCommandResponse('Metaregistrar\EPP\eppInfoDomainRequest', 'Metaregistrar\EPP\plEppDnssecInfoDomainResponse');
