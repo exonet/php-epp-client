@@ -37,6 +37,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
+          permission-issues: write
 
       - name: Checkout fork
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -75,15 +76,26 @@ jobs:
           # sync rather than an ancient common ancestor.
           git push --force origin "upstream/${UPSTREAM_BRANCH}:refs/heads/${branch}"
 
-          body="Automated sync of upstream [\`${UPSTREAM}\`](https://github.com/${UPSTREAM}) into this fork. Merge with **Create a merge commit**, not \"Squash and merge\", so upstream stays an ancestor of \`master\`. Squashing freezes the merge base and makes later sync PRs replay commits that already landed, along with phantom conflicts. The local Exonet patches are preserved. Resolve any conflicts in favour of the patches. Upstream: ${UPSTREAM}@${upstream_sha}."
+          merge_note="Automated sync of upstream [\`${UPSTREAM}\`](https://github.com/${UPSTREAM}) into this fork. Merge with **Create a merge commit**, not \"Squash and merge\", so upstream stays an ancestor of \`master\`. Squashing freezes the merge base and makes later sync PRs replay commits that already landed, along with phantom conflicts. The local Exonet patches are preserved. Resolve any conflicts in favour of the patches. Upstream: ${UPSTREAM}@${upstream_sha}."
+
+          label_note="Labels: \`maintenance\` for the changelog category and \`minor\` for the version bump, so the draft release becomes a minor. Adjust before merging when the contents say otherwise: drop \`minor\` for a patch, or swap it for \`breaking-change\` when upstream renames or removes something public."
+
+          # A continuation line here would carry this block's indentation,
+          # which renders as a code block in the PR body.
+          body="${merge_note}"$'\n\n'"${label_note}"
 
           # Create the PR in THIS fork. `gh pr create` defaults the base repo to the
           # upstream parent for forks (which the app token can't touch -> "Resource
           # not accessible by integration"), so hit the fork's pulls API directly.
-          url="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/pulls" \
+          pr="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/pulls" \
             -f "title=Sync with upstream ${UPSTREAM}@${upstream_sha}" \
             -f "head=${branch}" \
             -f "base=master" \
-            -f "body=${body}" \
-            --jq '.html_url')"
+            -f "body=${body}")"
+          number="$(jq -r '.number' <<<"${pr}")"
+          url="$(jq -r '.html_url' <<<"${pr}")"
+
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${number}/labels" \
+            -f 'labels[]=maintenance' -f 'labels[]=minor' >/dev/null
+
           echo "Opened ${url}. Review it and merge it manually with \"Create a merge commit\"."
