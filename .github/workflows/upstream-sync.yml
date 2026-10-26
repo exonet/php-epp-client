@@ -80,8 +80,8 @@ jobs:
 
           label_note="Labels: \`maintenance\` for the changelog category and \`minor\` for the version bump, so the draft release becomes a minor. Adjust before merging when the contents say otherwise: drop \`minor\` for a patch, or swap it for \`breaking-change\` when upstream renames or removes something public."
 
-          # Joined with a real blank line so both land as separate paragraphs.
-          # An indented continuation inside this block would render as code.
+          # A continuation line here would carry this block's indentation,
+          # which renders as a code block in the PR body.
           body="${merge_note}"$'\n\n'"${label_note}"
 
           # Create the PR in THIS fork. `gh pr create` defaults the base repo to the
@@ -95,8 +95,6 @@ jobs:
           number="$(jq -r '.number' <<<"${pr}")"
           url="$(jq -r '.html_url' <<<"${pr}")"
 
-          # The draft's category and version both come from these labels. A
-          # sync usually brings upstream features, so minor. Drop it for a patch.
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${number}/labels" \
             -f 'labels[]=maintenance' -f 'labels[]=minor' >/dev/null
 

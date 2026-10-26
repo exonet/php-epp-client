@@ -1,6 +1,4 @@
 ---
-# Syncs .github/labels.yml to this repository's labels. The release notes are
-# grouped by those labels, so a PR without one lands uncategorised.
 name: Sync labels
 
 on:

@@ -1,10 +1,4 @@
 ---
-# Keeps the release draft up to date on every push to master. Publishing the
-# draft creates the tag that composer resolves this fork by.
-#
-# A public repo may only use reusable workflows from public repos, so the shared
-# ones in the private exonet/github-workflows are out of reach. Like the other
-# public repos, this one carries its own copy and its own config.
 name: Release Drafter
 
 on:
